@@ -1,0 +1,38 @@
+services:
+  web1:
+    build: ./web1
+    ports:
+      - "8000:5000"
+    develop:
+      watch:
+        - action: sync
+          path: ./web1
+          target: /code
+  web2:
+    build: ./web2
+    ports:
+      - "8001:5000"
+    develop:
+      watch:
+        - action: sync
+          path: ./web2
+          target: /code
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: meubanco
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: senha123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    
+  redis:
+    image: "redis:alpine"
+
+
+volumes:
+  pgdata:
