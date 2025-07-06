@@ -1,21 +1,14 @@
 services:
-  web1:
-    build: ./web1
+  auth:
+    build: ./auth
     ports:
       - "8000:5000"
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
     develop:
       watch:
         - action: sync
-          path: ./web1
-          target: /code
-  web2:
-    build: ./web2
-    ports:
-      - "8001:5000"
-    develop:
-      watch:
-        - action: sync
-          path: ./web2
+          path: ./auth
           target: /code
   db:
     image: postgres:16

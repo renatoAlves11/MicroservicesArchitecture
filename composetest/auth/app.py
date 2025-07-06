@@ -1,15 +1,21 @@
 from flask import Flask, request, jsonify
+import bcrypt
 import jwt
 import datetime
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'segredo-muito-seguro'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave-padrao-insegura') #mantem a chave de segurança fora do código-fonte
 
 # Banco de usuários fake
 users = {
-    "joao": "123456",
-    "maria": "abcdef"
+    "joao": bcrypt.hashpw("12345".encode('utf-8'), bcrypt.gensalt()),
+    "maria": bcrypt.hashpw("password".encode('utf-8'), bcrypt.gensalt())
 }
+
+@app.route('/', methods=['GET'])
+def home():
+    return "Microserviço de autenticação rodando!"
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -17,7 +23,15 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    if users.get(username) == password:
+    #verifica se username e password existem e são strings
+    if not username or not isinstance(username, str):
+        return jsonify({"error": "Campo 'username' é obrigatório e deve ser texto"}), 400
+    if not password or not isinstance(password, str):
+        return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
+
+    hash_stored = users.get(username)
+
+    if hash_stored and bcrypt.checkpw(password.encode('utf-8'), hash_stored):  #verifica valor de senha aplicando a função hash
         token = jwt.encode({
             'sub': username,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)
