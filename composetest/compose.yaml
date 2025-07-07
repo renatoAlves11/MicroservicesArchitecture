@@ -22,6 +22,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+  user:
+      build: ./user
+      ports:
+        - "8001:5000"
+      environment:
+        - SECRET_KEY=minha-chave-supersegura
+        - FLASK_APP=main.py
+      develop:
+        watch:
+          - action: sync
+            path: ./user
+            target: /code
     
   redis:
     image: "redis:alpine"
