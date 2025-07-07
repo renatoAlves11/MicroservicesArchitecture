@@ -28,11 +28,21 @@ services:
         - "8001:5000"
       environment:
         - SECRET_KEY=minha-chave-supersegura
-        - FLASK_APP=main.py
       develop:
         watch:
           - action: sync
             path: ./user
+            target: /code
+  curso_conteudo:
+      build: ./curso_conteudo
+      ports:
+        - "8002:5000"
+      environment:
+        - SECRET_KEY=minha-chave-supersegura
+      develop:
+        watch:
+          - action: sync
+            path: ./curso_conteudo
             target: /code
     
   redis:
