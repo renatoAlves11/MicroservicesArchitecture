@@ -58,6 +58,22 @@ services:
         - action: sync
           path: ./curso_conteudo
           target: /code
+
+  pagamento:
+      build: ./pagamento
+      ports:
+        - "8003:5000"
+      environment:
+        - SECRET_KEY=minha-chave-supersegura
+        - URL_CURSOS=http://curso_conteudo:5000
+      depends_on:
+        - curso_conteudo
+        - db
+      develop:
+        watch:
+          - action: sync
+            path: ./pagamento
+            target: /code
     
   redis:
     image: "redis:alpine"
