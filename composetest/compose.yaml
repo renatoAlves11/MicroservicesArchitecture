@@ -5,6 +5,10 @@ services:
       - "8000:5000"
     environment:
       - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
     develop:
       watch:
         - action: sync
@@ -16,34 +20,44 @@ services:
     environment:
       POSTGRES_DB: meubanco
       POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: senha123
+      POSTGRES_PASSWORD: senha
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
   user:
-      build: ./user
-      ports:
-        - "8001:5000"
-      environment:
-        - SECRET_KEY=minha-chave-supersegura
-      develop:
-        watch:
-          - action: sync
-            path: ./user
-            target: /code
+    build: ./user
+    ports:
+      - "8001:5000"
+    depends_on:
+      - db
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
+    develop:
+      watch:
+        - action: sync
+          path: ./user
+          target: /code
   curso_conteudo:
-      build: ./curso_conteudo
-      ports:
-        - "8002:5000"
-      environment:
-        - SECRET_KEY=minha-chave-supersegura
-      develop:
-        watch:
-          - action: sync
-            path: ./curso_conteudo
-            target: /code
+    build: ./curso_conteudo
+    ports:
+      - "8002:5000"
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
+    develop:
+      watch:
+        - action: sync
+          path: ./curso_conteudo
+          target: /code
     
   redis:
     image: "redis:alpine"

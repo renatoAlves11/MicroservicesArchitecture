@@ -1,5 +1,4 @@
-from . import db
-
+from .database import db
 class Curso(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(100), nullable=False)

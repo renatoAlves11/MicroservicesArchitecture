@@ -2,27 +2,29 @@ import bcrypt
 import jwt
 import datetime
 from flask import current_app, jsonify
+from .models import Usuario
+from .database import db
 
-# Fake database
-users = {
-    "joao": bcrypt.hashpw("12345".encode('utf-8'), bcrypt.gensalt()),
-    "maria": bcrypt.hashpw("password".encode('utf-8'), bcrypt.gensalt())
-}
+def auth_user(email: str, password: str):
+    usuario = Usuario.query.filter(Usuario.email == email).first()
+    if usuario and bcrypt.checkpw(password.encode(), usuario.password.encode()):
+        return usuario
+    return None
 
 def login_user(data):
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
 
-    if not username or not isinstance(username, str):
-        return jsonify({"error": "Campo 'username' é obrigatório e deve ser texto"}), 400
+    if not email or not isinstance(email, str):
+        return jsonify({"error": "Campo 'email' é obrigatório e deve ser texto"}), 400
     if not password or not isinstance(password, str):
         return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
+    
+    user = auth_user(email, password)
 
-    hash_stored = users.get(username)
-
-    if hash_stored and bcrypt.checkpw(password.encode('utf-8'), hash_stored):
+    if user:
         token = jwt.encode({
-            'sub': username,
+            'sub': email,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
         return jsonify({"token": token})

@@ -1,16 +1,14 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from .config import Config
+from .routes import curso_bp
+from .database import db
 
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cursos.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.from_object(Config)
 
-    db.init_app(app)
+    db.init_app(app)  
 
-    from .routes import curso_bp
     app.register_blueprint(curso_bp)
 
     with app.app_context():

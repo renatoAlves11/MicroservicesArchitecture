@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for
-from . import db
+from .database import db
 from .models import Curso, Conteudo
 
 curso_bp = Blueprint('curso', __name__)
