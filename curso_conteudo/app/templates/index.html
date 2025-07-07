@@ -1,19 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Gerenciamento de Cursos</title>
+  <meta charset="UTF-8">
+  <title>Gerenciamento de Cursos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    ul {
+      text-align: left;
+      display: inline-block;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+    .btn {
+      background-color: #2c7be5;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #1a5bc2;
+    }
+  </style>
 </head>
 <body>
-    <h1>Serviço de Cursos e Conteúdos</h1>
-    <p>Use a API para gerenciar cursos. Exemplo de endpoints:</p>
-    <ul>
-        <li>GET /cursos</li>
-        <li>POST /cursos</li>
-        <li>PUT /cursos/&lt;id&gt;</li>
-        <li>DELETE /cursos/&lt;id&gt;</li>
-        <li>POST /conteudos</li>
-        <li>GET /cursos/&lt;id&gt;/conteudos</li>
-    </ul>
+  <h1>Serviço de Cursos e Conteúdos</h1>
+  <button class="btn" onclick="window.location.href='/cursos/web'">
+    Ver Cursos
+  </button>
 </body>
 </html>
