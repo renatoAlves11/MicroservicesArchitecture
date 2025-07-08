@@ -38,6 +38,7 @@ def criar_pagamento():
     id_usuario = dados['id']
     id_curso = dados['id_curso']
 
+    '''
     # Buscar o preço real do curso no serviço de cursos
     try:
         resp = requests.get(f"{URL_CURSOS}/cursos/{id_curso}")
@@ -46,7 +47,20 @@ def criar_pagamento():
         preco = resp.json().get('preco')
     except Exception as e:
         return jsonify({'erro': 'Falha ao consultar serviço de curso', 'detalhe': str(e)}), 503
+    '''
     
+    def obter_preco_curso(id_curso):
+        sql = "SELECT preco FROM cursos WHERE id = %s"
+        result = db.session.execute(sql, (id_curso,))
+        row = result.fetchone()
+        if not row:
+            return jsonify({'erro': 'Curso não encontrado'}), 404
+        return row[0]
+    
+    preco = obter_preco_curso(id_curso)
+    if preco is None:
+        return jsonify({'erro': 'Curso não encontrado'}), 404
+
     ## logica!
     pagamento = Pagamento(
         id_usuario=id_usuario,
