@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 import random
 from .models import db, Pagamento
-import requests
+#import requests
 import os
-
+from sqlalchemy import text
 from flask import render_template
 
 pagamento_bp = Blueprint('pagamento', __name__)
@@ -18,7 +18,7 @@ O pagamento faz uma requisicao pr api que retorna o preco do curso
 '''
 
 # nsei se isso ta certo
-URL_CURSOS = os.environ.get("URL_CURSOS", "http://curso_conteudo:5000")
+#URL_CURSOS = os.environ.get("URL_CURSOS", "http://curso_conteudo:5000")
 
 @pagamento_bp.route('/pagamento/<id_pagamento>', methods=['GET'])
 def get_pagamento(id_pagamento):
@@ -50,12 +50,11 @@ def criar_pagamento():
     '''
     
     def obter_preco_curso(id_curso):
-        sql = "SELECT preco FROM cursos WHERE id = %s"
-        result = db.session.execute(sql, (id_curso,))
+        sql = text('SELECT preco FROM curso WHERE id = :id')
+        result = db.session.execute(sql, {'id': id_curso})
         row = result.fetchone()
-        if not row:
-            return jsonify({'erro': 'Curso não encontrado'}), 404
-        return row[0]
+        return row[0] if row else None
+
     
     preco = obter_preco_curso(id_curso)
     if preco is None:
@@ -79,9 +78,9 @@ def criar_pagamento():
     pagamento.status = 'sucesso' if random.random() < 0.8 else 'falha'
 
     db.session.commit()
-    return jsonify({'id': pagamento.id, 'status': pagamento.status, 'valor': pagamento.preco}), 200
+    return jsonify({'id': pagamento.id, 'status': pagamento.status, 'valor': pagamento.valor}), 200
 
-@pagamento_bp.route('/teste_pagamento', methods=['GET', 'POST'])
+"""@pagamento_bp.route('/teste_pagamento', methods=['GET', 'POST'])
 def teste_pagamento():
     resposta = None
     if request.method == 'POST':
@@ -114,5 +113,5 @@ def teste_pagamento():
         except Exception as e:
             resposta = {"status": f"Erro: {e}", "id": "-", "valor": "-"}
     
-    return render_template('pagamento.html', resposta=resposta)
+    return render_template('pagamento.html', resposta=resposta)"""
 

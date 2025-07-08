@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from .database import db
-from .models import Curso, Conteudo
 
 curso_bp = Blueprint('curso', __name__)
 
@@ -11,7 +10,7 @@ def home():
 # Cursos
 @curso_bp.route('/cursos', methods=['GET'])
 def listar_cursos():
-    cursos = Curso.query.all()
+    cursos = db.Curso.query.all()
     return jsonify([
         {
             'id': curso.id,
@@ -28,7 +27,7 @@ def criar_curso_web():
         descricao = request.form['descricao']
         preco = float(request.form['preco'])
 
-        novo_curso = Curso(titulo=titulo, descricao=descricao, preco=preco)
+        novo_curso = db.Curso(titulo=titulo, descricao=descricao, preco=preco)
         db.session.add(novo_curso)
         db.session.commit()
 
@@ -38,7 +37,7 @@ def criar_curso_web():
 
 @curso_bp.route('/cursos/<int:id>', methods=['PUT'])
 def atualizar_curso(id):
-    curso = Curso.query.get_or_404(id)
+    curso = db.Curso.query.get_or_404(id)
     data = request.get_json()
     curso.titulo = data['titulo']
     curso.descricao = data['descricao']
@@ -48,7 +47,7 @@ def atualizar_curso(id):
 
 @curso_bp.route('/cursos/<int:id>', methods=['DELETE'])
 def deletar_curso(id):
-    curso = Curso.query.get_or_404(id)
+    curso = db.Curso.query.get_or_404(id)
     db.session.delete(curso)
     db.session.commit()
     return jsonify({'mensagem': 'Curso deletado'})
@@ -57,32 +56,32 @@ def deletar_curso(id):
 @curso_bp.route('/conteudos', methods=['POST'])
 def adicionar_conteudo():
     data = request.get_json()
-    conteudo = Conteudo(curso_id=data['curso_id'], titulo=data['titulo'], texto=data['texto'])
+    conteudo = db.Conteudo(curso_id=data['curso_id'], titulo=data['titulo'], texto=data['texto'])
     db.session.add(conteudo)
     db.session.commit()
     return jsonify({'mensagem': 'Conteúdo adicionado'}), 201
 
 @curso_bp.route('/cursos/<int:curso_id>/conteudos', methods=['GET'])
 def listar_conteudos(curso_id):
-    conteudos = Conteudo.query.filter_by(curso_id=curso_id).all()
+    conteudos = db.Conteudo.query.filter_by(curso_id=curso_id).all()
     return jsonify([{'id': c.id, 'titulo': c.titulo, 'texto': c.texto} for c in conteudos])
 
 @curso_bp.route('/cursos/web', methods=['GET'])
 def exibir_cursos():
-    cursos = Curso.query.all()
+    cursos = db.Curso.query.all()
     sucesso = request.args.get('sucesso') == 'true'
     return render_template('cursos.html', cursos=cursos, sucesso=sucesso)
 
 @curso_bp.route('/cursos/<int:id>/editar', methods=['GET', 'POST'])
 def editar_curso(id):
-    curso = Curso.query.get_or_404(id)
+    curso = db.Curso.query.get_or_404(id)
 
     if request.method == 'POST':
         curso.titulo = request.form['titulo']
         curso.descricao = request.form['descricao']
         curso.preco = float(request.form['preco'])  # garantir que seja float
         db.session.commit()
-        return render_template('cursos.html', cursos=Curso.query.all())
+        return render_template('cursos.html', cursos=db.Curso.query.all())
 
     return render_template('editar_curso.html', curso=curso)
 
@@ -93,7 +92,7 @@ def criar_curso():
         descricao = request.form['descricao']
         preco = float(request.form['preco'])
 
-        novo_curso = Curso(titulo=titulo, descricao=descricao, preco=preco)
+        novo_curso = db.Curso(titulo=titulo, descricao=descricao, preco=preco)
         db.session.add(novo_curso)
         db.session.commit()
 
@@ -104,7 +103,7 @@ def criar_curso():
 
 @curso_bp.route('/cursos/<int:id>/conteudos/novo', methods=['GET', 'POST'])
 def criar_conteudo(id):
-    curso = Curso.query.get_or_404(id)
+    curso = db.Curso.query.get_or_404(id)
     erro = None
 
     if request.method == 'POST':
@@ -113,10 +112,10 @@ def criar_conteudo(id):
         texto = request.form['texto']
 
         # verificar ordem repetida
-        if Conteudo.query.filter_by(curso_id=id, ordem=ordem).first():
+        if db.Conteudo.query.filter_by(curso_id=id, ordem=ordem).first():
             erro = f"Já existe um conteúdo com ordem {ordem} para este curso."
         else:
-            novo = Conteudo(curso_id=id, ordem=ordem, titulo=titulo, texto=texto)
+            novo = db.Conteudo(curso_id=id, ordem=ordem, titulo=titulo, texto=texto)
             db.session.add(novo)
             db.session.commit()
             return redirect(url_for('curso.ver_curso', id=id, sucesso='true'))
@@ -125,26 +124,26 @@ def criar_conteudo(id):
 
 @curso_bp.route('/cursos/<int:id>/ver', methods=['GET'])
 def ver_curso(id):
-    curso = Curso.query.get_or_404(id)
+    curso = db.Curso.query.get_or_404(id)
     sucesso = request.args.get('sucesso') == 'true'
     return render_template('ver_curso.html', curso=curso, sucesso=sucesso)
 
 @curso_bp.route('/cursos/<int:curso_id>/conteudos/<int:conteudo_id>/deletar', methods=['POST'])
 def deletar_conteudo(curso_id, conteudo_id):
-    conteudo = Conteudo.query.get_or_404(conteudo_id)
+    conteudo = db.Conteudo.query.get_or_404(conteudo_id)
     db.session.delete(conteudo)
     db.session.commit()
     return redirect(url_for('curso.ver_curso', id=curso_id))
 
 @curso_bp.route('/cursos/<int:curso_id>/conteudos/<int:conteudo_id>/editar', methods=['GET', 'POST'])
 def editar_conteudo(curso_id, conteudo_id):
-    curso = Curso.query.get_or_404(curso_id)
-    conteudo = Conteudo.query.get_or_404(conteudo_id)
+    curso = db.Curso.query.get_or_404(curso_id)
+    conteudo = db.Conteudo.query.get_or_404(conteudo_id)
     erro = None
 
     if request.method == 'POST':
         nova_ordem = int(request.form['ordem'])
-        if Conteudo.query.filter(Conteudo.curso_id == curso_id, Conteudo.ordem == nova_ordem, Conteudo.id != conteudo_id).first():
+        if db.Conteudo.query.filter(db.Conteudo.curso_id == curso_id, db.Conteudo.ordem == nova_ordem, db.Conteudo.id != conteudo_id).first():
             erro = f"Já existe um conteúdo com ordem {nova_ordem} para este curso."
         else:
             conteudo.ordem = nova_ordem
