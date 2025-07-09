@@ -35,11 +35,21 @@ def register():
 
 @auth_routes.route('/me', methods=['GET'])
 def me():
-    token = session.get('token')
-    if not token:
+    auth_header = request.headers.get('Authorization', '')
+    print("Authorization header:", auth_header)
+
+    if not auth_header.startswith('Bearer '):
         return jsonify({'authenticated': False, 'user': None}), 401
+
+    token = auth_header.split(' ')[1]
+    
+    # Adicione logs aqui:
     verify_resp, verify_status = verify_token(token)
+    print("verify_token status:", verify_status)
+    print("verify_token response:", verify_resp.get_data(as_text=True))
+
     if verify_status == 200:
         user_email = verify_resp.get_json().get('user')
         return jsonify({'authenticated': True, 'user': user_email})
+
     return jsonify({'authenticated': False, 'user': None}), 401

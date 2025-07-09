@@ -26,7 +26,7 @@ def criar_pagamento():
 
     def obter_preco_curso(id_curso):
         try:
-            response = requests.get(f"{get_database_service_url()}/cursos/{id_curso}")
+            response = requests.get(f"http://curso_conteudo:5000/cursos/{id_curso}")
             if response.status_code == 200:
                 curso = response.json()
                 return curso['preco']
