@@ -57,6 +57,18 @@ services:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "8010:3000"
+    depends_on:
+      - database_service
+    environment:
+      - NEXT_PUBLIC_AUTH_URL=http://auth:5000
+      - NEXT_PUBLIC_CURSO_URL=http://curso_conteudo:5000
+      - NEXT_PUBLIC_PAGAMENTO_URL=http://pagamento:5000
+      - NEXT_PUBLIC_DATABASE_URL=http://database_service:5000
+
 
 volumes:
   pgdata:
