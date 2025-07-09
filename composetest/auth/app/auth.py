@@ -3,9 +3,10 @@ import jwt
 import datetime
 from flask import current_app, jsonify
 from .database import db
+from .models import Usuario
 
 def auth_user(email: str, password: str):
-    usuario = db.Usuario.query.filter(db.Usuario.email == email).first()
+    usuario = Usuario.query.filter(Usuario.email == email).first()
     if usuario and bcrypt.checkpw(password.encode(), usuario.password.encode()):
         return usuario
     return None

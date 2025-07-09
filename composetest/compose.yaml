@@ -1,19 +1,5 @@
 services:
-  auth:
-    build: ./auth
-    ports:
-      - "8000:5000"
-    environment:
-      - SECRET_KEY=minha-chave-supersegura
-      - DB_HOST=postgres_db
-      - DB_NAME=meubanco
-      - DB_USER=usuario
-      - DB_PASSWORD=senha
-    develop:
-      watch:
-        - action: sync
-          path: ./auth
-          target: /code
+
   db:
     image: postgres:16
     container_name: postgres_db
@@ -26,6 +12,25 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+
+  auth:
+    build: ./auth
+    ports:
+      - "8000:5000"
+    depends_on:
+      - db
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
+    develop:
+      watch:
+        - action: sync
+          path: ./auth
+          target: /code
+
   user:
     build: ./user
     ports:
@@ -43,6 +48,7 @@ services:
         - action: sync
           path: ./user
           target: /code
+
   curso_conteudo:
     build: ./curso_conteudo
     ports:
@@ -60,27 +66,44 @@ services:
           target: /code
 
   pagamento:
-      build: ./pagamento
-      ports:
-        - "8003:5000"
-      environment:
-        - SECRET_KEY=minha-chave-supersegura
-        - DB_HOST=postgres_db
-        - DB_NAME=meubanco
-        - DB_USER=usuario
-        - DB_PASSWORD=senha
-      depends_on:
-        - db
-        - user
-        - curso_conteudo
-      develop:
-        watch:
-          - action: sync
-            path: ./pagamento
-            target: /code
-    
-  redis:
-    image: "redis:alpine"
+    build: ./pagamento
+    ports:
+      - "8003:5000"
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
+    depends_on:
+      - db
+      - user
+      - curso_conteudo
+    develop:
+      watch:
+        - action: sync
+          path: ./pagamento
+          target: /code
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8010:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - AUTH_URL=http://auth:5000
+      - USER_URL=http://user:5000
+      - PAGAMENTO_URL=http://pagamento:5000
+    depends_on:
+      - auth
+      - user
+      - pagamento
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /code
 
 volumes:
   pgdata:
