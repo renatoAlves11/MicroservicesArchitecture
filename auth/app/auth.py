@@ -23,17 +23,21 @@ def auth_user(email: str, password: str):
 def login_user(data):
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role')
 
     if not email or not isinstance(email, str):
         return jsonify({"error": "Campo 'email' é obrigatório e deve ser texto"}), 400
     if not password or not isinstance(password, str):
         return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
+    if not role or not isinstance(role, str):
+        return jsonify({"error": "Campo 'role' é obrigatório e deve ser texto"}), 400
     
     user = auth_user(email, password)
 
     if user:
         token = jwt.encode({
             'sub': email,
+            'role': role,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
         return jsonify({"token": token}), 200
@@ -53,12 +57,15 @@ def register_user(data):
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role')
 
     if not name or not isinstance(name, str):
         return jsonify({"error": "Campo 'name' é obrigatório e deve ser texto"}), 400
     if not email or not isinstance(email, str):
         return jsonify({"error": "Campo 'email' é obrigatório e deve ser texto"}), 400
     if not password or not isinstance(password, str):
+        return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
+    if not role or not isinstance(role, str):
         return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
 
     # Verificar se email já existe
@@ -79,7 +86,8 @@ def register_user(data):
         response = requests.post(f"{get_database_service_url()}/usuarios", json={
             'name': name,
             'email': email,
-            'password': hashed_pw
+            'password': hashed_pw,
+            'role' : role
         })
         if response.status_code == 201:
             novo_usuario = response.json()
