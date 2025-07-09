@@ -1,5 +1,11 @@
 services:
 
+  gateway:
+    build: ./gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
   db:
     image: postgres:16
     container_name: postgres_db
@@ -29,8 +35,6 @@ services:
 
   auth:
     build: ./auth
-    ports:
-      - "8000:5000"
     depends_on:
       - database_service
     environment:
@@ -39,8 +43,6 @@ services:
 
   curso_conteudo:
     build: ./curso_conteudo
-    ports:
-      - "8002:5000"
     depends_on:
       - database_service
     environment:
@@ -49,25 +51,12 @@ services:
 
   pagamento:
     build: ./pagamento
-    ports:
-      - "8003:5000"
     depends_on:
       - database_service
     environment:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "8010:3000"
-    depends_on:
-      - database_service
-    environment:
-      - NEXT_PUBLIC_AUTH_URL=http://auth:5000
-      - NEXT_PUBLIC_CURSO_URL=http://curso_conteudo:5000
-      - NEXT_PUBLIC_PAGAMENTO_URL=http://pagamento:5000
-      - NEXT_PUBLIC_DATABASE_URL=http://database_service:5000
 
 
 volumes:
