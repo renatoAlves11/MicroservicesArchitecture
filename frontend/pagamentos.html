@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pagamentos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Dashboard</a> |
+    <a href="login.html">Login</a> |
+    <a href="register.html">Registrar</a> |
+    <a href="cursos.html">Cursos</a> |
+    <a href="pagamentos.html">Pagamentos</a>
+  </nav>
+  <h1>Pagamentos</h1>
+  <form id="pagamentoForm">
+    <label>ID Usuário: <input type="text" id="id_usuario" required></label><br>
+    <label>ID Curso: <input type="text" id="id_curso" required></label><br>
+    <button type="submit">Adicionar Pagamento</button>
+    <div id="pagamentoError" style="color:red;"></div>
+  </form>
+  <h2>Lista de Pagamentos</h2>
+  <ul id="listaPagamentos"></ul>
+  <script src="js/pagamentos.js"></script>
+</body>
+</html> 

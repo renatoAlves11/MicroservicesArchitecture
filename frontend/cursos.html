@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cursos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Dashboard</a> |
+    <a href="login.html">Login</a> |
+    <a href="register.html">Registrar</a> |
+    <a href="cursos.html">Cursos</a> |
+    <a href="pagamentos.html">Pagamentos</a>
+  </nav>
+  <h1>Cursos</h1>
+  <form id="cursoForm">
+    <label>Título: <input type="text" id="titulo" required></label><br>
+    <label>Descrição: <input type="text" id="descricao" required></label><br>
+    <label>Preço: <input type="number" id="preco" step="0.01" required></label><br>
+    <button type="submit">Adicionar Curso</button>
+    <div id="cursoError" style="color:red;"></div>
+  </form>
+  <h2>Lista de Cursos</h2>
+  <ul id="listaCursos"></ul>
+  <script src="js/cursos.js"></script>
+</body>
+</html> 
