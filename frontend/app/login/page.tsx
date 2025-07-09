@@ -22,16 +22,7 @@ export default function LoginPage() {
 
   const userCtx = useContext(userContext)
 
-  const handleSendForm = async () => {
-    try{
-      const response = await api.post('/user', {email, password})
-      userCtx
-    }catch(e){
-      
-    }
-  }
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(""); setSuccess("");
     try {
@@ -43,8 +34,12 @@ export default function LoginPage() {
         userCtx.setUser(meResp.data.user)
       }
       // Redirecionar se necessário
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Erro ao fazer login")
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        setError((err as any)?.response?.data?.error || "Erro ao fazer login")
+      } else {
+        setError("Erro ao fazer login")
+      }
     }
   }
 

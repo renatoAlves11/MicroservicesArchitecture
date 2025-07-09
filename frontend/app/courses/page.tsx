@@ -9,13 +9,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, Search, Star, Users, Clock, Play, Heart, Share2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image";
+
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  instructor: string;
+  students: number;
+  rating: number;
+  reviews: number;
+  duration: string;
+  chapters: number;
+  level: string;
+  category: string;
+  tags: string[];
+  image: string;
+  bestseller: boolean;
+  featured: boolean;
+  originalPrice: number;
+}
 
 export default function CoursesLibrary() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedLevel, setSelectedLevel] = useState("all")
   const [sortBy, setSortBy] = useState("popular")
-  const [courses, setCourses] = useState<any[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("");
 
@@ -23,9 +44,9 @@ export default function CoursesLibrary() {
     // Usando o database service diretamente
     fetch("http://localhost:8004/cursos")
       .then(res => res.json())
-      .then(data => {
+      .then((data: any[]) => {
         // Transformar dados para o formato esperado pelo frontend
-        const transformedCourses = data.map((course: any) => ({
+        const transformedCourses: Course[] = data.map((course) => ({
           id: course.id,
           title: course.titulo,
           description: course.descricao,
@@ -199,9 +220,11 @@ export default function CoursesLibrary() {
               {sortedCourses.map((course) => (
                 <Card key={course.id} className="hover:shadow-lg transition-shadow group">
                   <div className="relative">
-                    <img
+                    <Image
                       src={course.image || "/placeholder.svg"}
                       alt={course.title}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover rounded-t-lg"
                     />
                     <div className="absolute top-4 left-4 flex gap-2">
@@ -327,9 +350,11 @@ export default function CoursesLibrary() {
                 .map((course) => (
                   <Card key={course.id} className="hover:shadow-lg transition-shadow">
                     <div className="relative">
-                      <img
+                      <Image
                         src={course.image || "/placeholder.svg"}
                         alt={course.title}
+                        width={400}
+                        height={192}
                         className="w-full h-48 object-cover rounded-t-lg"
                       />
                       <Badge className="absolute top-4 left-4 bg-purple-500 hover:bg-purple-600">Featured</Badge>
@@ -360,9 +385,11 @@ export default function CoursesLibrary() {
                 .map((course) => (
                   <Card key={course.id} className="hover:shadow-lg transition-shadow">
                     <div className="relative">
-                      <img
+                      <Image
                         src={course.image || "/placeholder.svg"}
                         alt={course.title}
+                        width={400}
+                        height={192}
                         className="w-full h-48 object-cover rounded-t-lg"
                       />
                       <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">Bestseller</Badge>

@@ -194,7 +194,7 @@ export default function InstructorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Course Performance</CardTitle>
-                <CardDescription>Overview of your courses' performance metrics</CardDescription>
+                <CardDescription>Overview of your courses&apos; performance metrics</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">

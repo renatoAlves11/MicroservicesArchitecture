@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -5,12 +7,16 @@ import { BookOpen, Users, BarChart3, Shield } from "lucide-react"
 import { useEffect, useState, createContext } from 'react';
 import api from "./api";
 
-export const userContext = createContext({ user: null, setUser: () => {} });
+interface UserContextType {
+  user: string | null;
+  setUser: (user: string | null) => void;
+}
+export const userContext = createContext<UserContextType>({ user: null, setUser: () => {} });
 
 const UserContextProvider = userContext.Provider;
 
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

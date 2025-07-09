@@ -3,9 +3,17 @@ import { useEffect, useState, useContext } from "react";
 import api from "../api";
 import { userContext } from "../page";
 
+interface Pagamento {
+  id: string;
+  id_curso: string;
+  valor: number;
+  status: string;
+  data: string;
+}
+
 export default function MyPaymentsPage() {
   const { user } = useContext(userContext);
-  const [pagamentos, setPagamentos] = useState<any[]>([]);
+  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -34,7 +42,7 @@ export default function MyPaymentsPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Meus Pagamentos</h1>
       <ul className="list-disc ml-6">
-        {pagamentos.map((p: any) => (
+        {pagamentos.map((p) => (
           <li key={p.id}>
             Curso: {p.id_curso} | Valor: R$ {p.valor} | Status: {p.status} | Data: {p.data}
           </li>

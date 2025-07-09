@@ -11,7 +11,8 @@ def listar_usuarios():
     return jsonify([{
         'id': u.id,
         'name': u.name,
-        'email': u.email
+        'email': u.email,
+        'password': u.password  # Adicionado para uso interno
     } for u in usuarios])
 
 @db_routes.route('/usuarios/<int:id>', methods=['GET'])

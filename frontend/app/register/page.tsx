@@ -34,7 +34,7 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(""); setSuccess("");
     const name = formData.firstName + ' ' + formData.lastName;
@@ -50,8 +50,12 @@ export default function RegisterPage() {
       if (meResp.data && meResp.data.authenticated) {
         userCtx.setUser(meResp.data.user)
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Erro ao cadastrar")
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        setError((err as any)?.response?.data?.error || "Erro ao cadastrar")
+      } else {
+        setError("Erro ao cadastrar")
+      }
     }
   }
 
