@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, Blueprint
 import requests
+from .decorators import role_required
 
 app_routes = Blueprint('auth', __name__)
 
@@ -36,6 +37,28 @@ def me():
     headers = {'Authorization': auth_header}
     response = requests.get('http://auth:5000/me', headers=headers)
 
+    return (response.text, response.status_code, response.headers.items())
+
+#Rotas gerenciamento de usuário
+
+@app_routes.route('/users', methods=['GET'])
+@role_required('administrador')
+def listar_usuarios():
+    response = requests.get('http://auth:5000/users', json=request.json)
+    return (response.text, response.status_code, response.headers.items())
+
+# Deletar usuário por ID (somente admin)
+@app_routes.route('/users/<int:id_usuario>', methods=['DELETE'])
+@role_required('administrador')
+def deletar_usuario(id_usuario):
+    response = requests.delete('http://auth:5000/users/<int:id_usuario>', json=request.json)
+    return (response.text, response.status_code, response.headers.items())
+
+# Atualizar role de um usuário (somente admin)
+@app_routes.route('/usuarios/<int:id_usuario>/role', methods=['PATCH'])
+@role_required('administrador')
+def atualizar_role(id_usuario):
+    response = requests.patch('http://auth:5000/users/<int:id_usuario>', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 #Rotas curso/conteúdo

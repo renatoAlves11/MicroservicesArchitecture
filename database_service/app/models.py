@@ -9,7 +9,7 @@ class Usuario(db.Model):
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)  # senha já hasheada
-    role = db.Column(db.String, nullable=False)  # "admin" ou "estudante"
+    role = db.Column(db.String, nullable=False, default = 'estudante')  # "admin" ou "estudante"
 
 # Modelos de Curso e Conteúdo (do serviço curso_conteudo)
 class Curso(db.Model):

@@ -58,7 +58,9 @@ def register_user(data):
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'estudante')
+    role = data.get('role')
+    if not role:  # Se vier None, vazio ou False
+        role = 'estudante'
 
     roles_permitidas = ['estudante', 'instrutor', 'administrador']
 
@@ -94,6 +96,8 @@ def register_user(data):
             'password': hashed_pw,
             'role' : role
         })
+        print("Status code:", response.status_code)
+        print("Response content:", response.text)
         if response.status_code == 201:
             novo_usuario = response.json()
             return jsonify({"message": "Usuário registrado com sucesso", "id": novo_usuario['id']}), 201

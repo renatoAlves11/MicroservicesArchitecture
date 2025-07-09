@@ -12,7 +12,8 @@ def listar_usuarios():
         'id': u.id,
         'name': u.name,
         'email': u.email,
-        'password': u.password  # Adicionado para uso interno
+        'password': u.password,  # Adicionado para uso interno
+        'role' : u.role
     } for u in usuarios])
 
 @db_routes.route('/usuarios/<int:id>', methods=['GET'])
@@ -21,7 +22,8 @@ def obter_usuario(id):
     return jsonify({
         'id': usuario.id,
         'name': usuario.name,
-        'email': usuario.email
+        'email': usuario.email,
+        'role' : usuario.role
     })
 
 @db_routes.route('/usuarios', methods=['POST'])
@@ -30,14 +32,16 @@ def criar_usuario():
     novo_usuario = Usuario(
         name=data['name'],
         email=data['email'],
-        password=data['password']
+        password=data['password'],
+        role = data['role']
     )
     db.session.add(novo_usuario)
     db.session.commit()
     return jsonify({
         'id': novo_usuario.id,
         'name': novo_usuario.name,
-        'email': novo_usuario.email
+        'email': novo_usuario.email,
+        'role' : novo_usuario.role
     }), 201
 
 @db_routes.route('/usuarios/<int:id>', methods=['PUT'])
@@ -51,12 +55,15 @@ def atualizar_usuario(id):
         usuario.email = data['email']
     if 'password' in data:
         usuario.password = data['password']
+    if 'role' in data:
+        usuario.role = data['role']
     
     db.session.commit()
     return jsonify({
         'id': usuario.id,
         'name': usuario.name,
-        'email': usuario.email
+        'email': usuario.email,
+        'role' : usuario.role
     })
 
 @db_routes.route('/usuarios/<int:id>', methods=['DELETE'])

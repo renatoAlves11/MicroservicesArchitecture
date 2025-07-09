@@ -1,11 +1,10 @@
 from flask import Blueprint, request, jsonify, session
 from .auth import login_user, verify_token, register_user
+import requests
+import os
 
 auth_routes = Blueprint('auth', __name__)
-
-@auth_routes.route('/', methods=['GET'])
-def home():
-    return "Microserviço de autenticação rodando!"
+DATABASE_URL = os.environ.get('DATABASE_SERVICE_URL', 'http://localhost:8004')
 
 @auth_routes.route('/login', methods=['POST'])
 def login():
@@ -60,3 +59,35 @@ def me():
         })
 
     return jsonify({'authenticated': False, 'user': None}), 401
+
+# Listar todos os usuários (somente admin)
+@auth_routes.route('/users', methods=['GET'])
+def listar_usuarios():
+    try:
+        response = requests.get(f"{DATABASE_URL}/usuarios")
+        return (response.text, response.status_code, response.headers.items())
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao buscar usuários'}), 500
+
+# Deletar usuário por ID (somente admin)
+@auth_routes.route('/users/<int:id_usuario>', methods=['DELETE'])
+def deletar_usuario(id_usuario):
+    try:
+        response = requests.delete(f"{DATABASE_URL}/usuarios/{id_usuario}")
+        return (response.text, response.status_code, response.headers.items())
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao deletar usuário'}), 500
+
+# Atualizar role de um usuário (somente admin)
+@auth_routes.route('/users/<int:id_usuario>/role', methods=['PATCH'])
+def atualizar_role(id_usuario):
+    nova_role = request.json.get('role')
+    roles_permitidas = ['estudante', 'instrutor', 'administrador']
+    if nova_role not in roles_permitidas:
+        return jsonify({'error': 'Role inválida'}), 400
+
+    try:
+        response = requests.patch(f"{DATABASE_URL}/usuarios/{id_usuario}/role", json={'role': nova_role})
+        return (response.text, response.status_code, response.headers.items())
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao atualizar role'}), 500
