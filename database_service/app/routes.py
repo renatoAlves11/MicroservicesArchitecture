@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .models import Usuario, Curso, Conteudo, Pagamento
+from .models import *
 from .database import db
 
 db_routes = Blueprint('database', __name__)
@@ -262,6 +262,58 @@ def deletar_pagamento(id_pagamento):
     db.session.delete(pagamento)
     db.session.commit()
     return jsonify({'message': 'Pagamento deletado com sucesso'})
+
+
+# Matricular usuário em um curso
+@db_routes.route('/matricula', methods=['POST'])
+def criar_matricula():
+    data = request.get_json()
+
+    if not data.get('id_usuario') or not data.get('id_curso'):
+        return jsonify({'error': 'Campos obrigatórios: id_usuario e id_curso'}), 400
+
+    # Verificar se já existe
+    existente = Matricula.query.filter_by(id_usuario=data['id_usuario'], id_curso=data['id_curso']).first()
+    if existente:
+        return jsonify({'error': 'Usuário já está matriculado nesse curso'}), 409
+
+    nova_matricula = Matricula(
+        id_usuario=data['id_usuario'],
+        id_curso=data['id_curso'],
+        data_matricula=datetime.utcnow()
+    )
+    db.session.add(nova_matricula)
+    db.session.commit()
+    return jsonify(nova_matricula.as_dict()), 201
+
+@db_routes.route('/matriculas/usuario/<id_usuario>', methods=['GET'])
+def listar_matriculas_usuario(id_usuario):
+    matriculas = Matricula.query.filter_by(id_usuario=id_usuario).all()
+    cursos_matriculados = []
+    for m in matriculas:
+        curso = Curso.query.get(m.id_curso)
+        if curso:
+            cursos_matriculados.append({
+                'id': curso.id,
+                'titulo': curso.titulo,
+                'descricao': curso.descricao,
+                'preco': curso.preco,
+                'data_matricula': m.data_matricula.isoformat()
+            })
+    return jsonify(cursos_matriculados), 200
+
+@db_routes.route('/matriculas/usuario/curso/<id_curso>', methods=['GET'])
+def listar_usuarios_matriculados_no_curso(id_curso):
+    matriculas = Matricula.query.filter_by(id_curso=id_curso).all()
+
+    usuarios_matriculados = []
+    for m in matriculas:
+        usuarios_matriculados.append({
+            'id_usuario': m.id_usuario,
+            'data_matricula': m.data_matricula.isoformat()
+        })
+
+    return jsonify(usuarios_matriculados), 200
 
 # Rota de health check
 @db_routes.route('/health', methods=['GET'])

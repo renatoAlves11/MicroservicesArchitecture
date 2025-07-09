@@ -44,7 +44,7 @@ def me():
 @app_routes.route('/users', methods=['GET'])
 @role_required('administrador')
 def listar_usuarios():
-    response = requests.get('http://auth:5000/users', json=request.json)
+    response = requests.get('http://auth:5000/users')
     return (response.text, response.status_code, response.headers.items())
 
 # Deletar usuário por ID (somente admin)
@@ -67,31 +67,35 @@ def atualizar_role(id_usuario):
 
 @app_routes.route('/cursos', methods=['GET'])
 def listar_cursos():
-    response = requests.get('http://cursos:5000/cursos')
+    response = requests.get('http://curso_conteudo:5000/cursos')
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/cursos', methods=['POST'])
+@role_required('administrador', 'instrutor')
 def criar_curso_api():
-    response = requests.post('http://cursos:5000/cursos')
+    response = requests.post('http://curso_conteudo:5000/cursos', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/cursos/<int:id>', methods=['PUT'])
+@role_required('administrador', 'instrutor')
 def atualizar_curso(id):
-    response = requests.put('http://cursos:5000/cursos/<int:id>', json=request.json)
+    response = requests.put('http://cursos:5000/curso_conteudo/<int:id>', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/cursos/<int:id>', methods=['DELETE'])
+@role_required('administrador', 'instrutor')
 def deletar_curso(id):
-    response = requests.delete('http://cursos:5000/cursos/<int:id>')
+    response = requests.delete('http://cursos:5000/curso_conteudo/<int:id>', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/cursos/<int:id>', methods=['GET'])
 def ver_curso_api(id):
-    response = requests.get('http://cursos:5000/cursos/<int:id>')
+    response = requests.get('http://cursos:5000/curso_conteudo/<int:id>')
     return (response.text, response.status_code, response.headers.items())
 
 # Conteúdos
 @app_routes.route('/conteudos', methods=['POST'])
+@role_required('instrutor')
 def adicionar_conteudo():
     response = requests.post('http://curso_conteudo:5000/conteudos', json=request.json)
     return (response.text, response.status_code, response.headers.items())
@@ -102,35 +106,51 @@ def listar_conteudos(curso_id):
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/conteudos/<int:id>', methods=['PUT'])
+@role_required('instrutor')
 def editar_conteudo_api(id):
     response = requests.put('http://curso_conteudo:5000/conteudos/<int:id>', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/cursos/<int:curso_id>/conteudos/<int:conteudo_id>', methods=['DELETE'])
+@role_required('instrutor')
 def deletar_conteudo(curso_id, conteudo_id):
     response = requests.delete('http://curso_conteudo:5000/cursos/<int:curso_id>/conteudos/<int:conteudo_id>', json=request.json)
+    return (response.text, response.status_code, response.headers.items())
+
+#Matricula
+
+@app_routes.route('/matricula', methods=['POST'])
+@role_required('estudante')
+def gateway_criar_matricula():
+    response = requests.post('http://curso_conteudo:5000/matricula', json=request.json)
+    return (response.text, response.status_code, response.headers.items())
+
+@app_routes.route('/matriculas/usuario/<id_usuario>', methods=['GET'])
+@role_required('estudante', 'administrador')
+def gateway_listar_matriculas(id_usuario):
+    response = requests.get(f'http://curso_conteudo:5000/matriculas/usuario/{id_usuario}')
     return (response.text, response.status_code, response.headers.items())
 
 #Rotas pagamento
 
 @app_routes.route('/pagamento/<id_pagamento>', methods=['GET'])
 def get_pagamento(id_pagamento):
-    response = requests.get('http://cursos:5000/pagamento/<id_pagamento>')
+    response = requests.get('http://curso_conteudo:5000/pagamento/<id_pagamento>')
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/pagamento', methods=['POST'])
 def criar_pagamento():
-    response = requests.post('http://cursos:5000/pagamento', json=request.json)
+    response = requests.post('http://curso_conteudo:5000/pagamento', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 
 @app_routes.route('/pagamentos', methods=['GET'])
+@role_required('administrador')
 def listar_pagamentos():
-    response = requests.get('http://cursos:5000/pagamentos')
+    response = requests.get('http://curso_conteudo:5000/pagamentos')
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/pagamentos/usuario/<id_usuario>', methods=['GET'])
 def listar_pagamentos_usuario(id_usuario):
-    response = requests.get('http://cursos:5000/pagamentos/usuario/<id_usuario>')
+    response = requests.get('http://curso_conteudo:5000/pagamentos/usuario/<id_usuario>')
     return (response.text, response.status_code, response.headers.items())
-

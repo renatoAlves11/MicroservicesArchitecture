@@ -9,7 +9,7 @@ class Usuario(db.Model):
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)  # senha já hasheada
-    role = db.Column(db.String, nullable=False, default = 'estudante')  # "admin" ou "estudante"
+    role = db.Column(db.String, nullable=False, default = 'estudante') 
 
 # Modelos de Curso e Conteúdo (do serviço curso_conteudo)
 class Curso(db.Model):
@@ -51,3 +51,19 @@ class Pagamento(db.Model):
             'status': self.status,
             'data': self.data.isoformat() if self.data else None
         } 
+    
+#Matricula de aluno no curso
+class Matricula(db.Model):
+    __tablename__ = 'matricula'
+    id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.Column(db.String, nullable=False)
+    id_curso = db.Column(db.Integer, db.ForeignKey('curso.id'), nullable=False)
+    data_matricula = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'id_usuario': self.id_usuario,
+            'id_curso': self.id_curso,
+            'data_matricula': self.data_matricula.isoformat()
+        }

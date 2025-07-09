@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 import requests
 import os
+from datetime import datetime
 
 curso_bp = Blueprint('curso', __name__)
+matricula_bp = Blueprint('matricula', __name__)
 
 def get_database_service_url():
     return os.environ.get('DATABASE_SERVICE_URL', 'http://localhost:8004')
@@ -111,3 +113,39 @@ def deletar_conteudo(curso_id, conteudo_id):
             return jsonify({"error": "Erro ao deletar conteúdo"}), 500
     except requests.RequestException as e:
         return jsonify({"error": "Erro ao conectar com serviço de banco"}), 500
+    
+#matricular em curso
+@matricula_bp.route('/matricula', methods=['POST'])
+def matricular_usuario():
+    data = request.json
+    try:
+        # Validação básica
+        if not data.get('id_usuario') or not data.get('id_curso'):
+            return jsonify({'error': 'id_usuario e id_curso são obrigatórios'}), 400
+
+        # (Opcional) Verificar se o curso existe
+        curso_response = requests.get(f"http://cursos:5000/cursos/{data['id_curso']}")
+        if curso_response.status_code != 200:
+            return jsonify({'error': 'Curso não encontrado'}), 404
+
+        data['data_matricula'] = datetime.utcnow().isoformat()
+
+        # Repassar a matrícula ao serviço de banco
+        response = requests.post(f"{get_database_service_url()}/matriculas", json=data)
+
+        check_response = requests.get(f"{get_database_service_url()}/matriculas/usuario/curso/{data['id_curso']}")
+        if check_response.status_code == 200:
+            return jsonify({'error': 'Usuário já matriculado neste curso'}), 409
+
+        return (response.text, response.status_code, response.headers.items())
+
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao se comunicar com o serviço de banco'}), 500
+    
+@matricula_bp.route('/matriculas/usuario/<int:id_usuario>', methods=['GET'])
+def listar_matriculas_usuario(id_usuario):
+    try:
+        response = requests.get(f"{get_database_service_url()}/matriculas/usuario/{id_usuario}")
+        return (response.text, response.status_code, response.headers.items())
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao consultar matrículas'}), 500
