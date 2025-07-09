@@ -23,31 +23,32 @@ def auth_user(email: str, password: str):
 def login_user(data):
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role')
 
     if not email or not isinstance(email, str):
         return jsonify({"error": "Campo 'email' é obrigatório e deve ser texto"}), 400
     if not password or not isinstance(password, str):
         return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
-    if not role or not isinstance(role, str):
-        return jsonify({"error": "Campo 'role' é obrigatório e deve ser texto"}), 400
     
     user = auth_user(email, password)
 
     if user:
         token = jwt.encode({
             'sub': email,
-            'role': role,
+            'role': user['role'],  # <- PEGA A ROLE REAL DO USUÁRIO AUTENTICADO
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
-        return jsonify({"token": token}), 200
+        return jsonify({"token": token, "role": user['role']}), 200  # <- já retorna a role para a sessão
 
     return jsonify({"error": "Credenciais inválidas"}), 401
 
 def verify_token(token):
     try:
         decoded = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-        return jsonify({"valid": True, "user": decoded['sub']}), 200
+        return jsonify({
+            "valid": True,
+            "user": decoded['sub'],
+            "role": decoded.get('role')  # <- pega a role do token
+        }), 200
     except jwt.ExpiredSignatureError:
         return jsonify({"valid": False, "error": "Token expirado"}), 401
     except jwt.InvalidTokenError:
@@ -57,7 +58,9 @@ def register_user(data):
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role')
+    role = data.get('role', 'estudante')
+
+    roles_permitidas = ['estudante', 'instrutor', 'administrador']
 
     if not name or not isinstance(name, str):
         return jsonify({"error": "Campo 'name' é obrigatório e deve ser texto"}), 400
@@ -66,7 +69,9 @@ def register_user(data):
     if not password or not isinstance(password, str):
         return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
     if not role or not isinstance(role, str):
-        return jsonify({"error": "Campo 'password' é obrigatório e deve ser texto"}), 400
+        return jsonify({"error": "Campo 'role' é obrigatório e deve ser texto"}), 400
+    if role not in roles_permitidas:
+        return jsonify({"error": f"Role inválida. Roles permitidas: {', '.join(roles_permitidas)}"}), 400
 
     # Verificar se email já existe
     try:
