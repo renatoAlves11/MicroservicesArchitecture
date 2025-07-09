@@ -26,11 +26,6 @@ services:
       - DB_USER=usuario
       - DB_PASSWORD=senha
       - DATABASE_SERVICE_URL=http://database_service:5000
-    develop:
-      watch:
-        - action: sync
-          path: ./database_service
-          target: /code
 
   auth:
     build: ./auth
@@ -41,11 +36,6 @@ services:
     environment:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
-    develop:
-      watch:
-        - action: sync
-          path: ./auth
-          target: /code
 
   curso_conteudo:
     build: ./curso_conteudo
@@ -56,11 +46,6 @@ services:
     environment:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
-    develop:
-      watch:
-        - action: sync
-          path: ./curso_conteudo
-          target: /code
 
   pagamento:
     build: ./pagamento
@@ -71,29 +56,17 @@ services:
     environment:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
-    develop:
-      watch:
-        - action: sync
-          path: ./pagamento
-          target: /code
 
   frontend:
     build: ./frontend
     ports:
       - "8010:5000"
     environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - AUTH_URL=http://auth:5000
       - DATABASE_SERVICE_URL=http://database_service:5000
+      - AUTH_URL=http://auth:5000
     depends_on:
       - auth
       - database_service
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend
-          target: /code
 
 volumes:
   pgdata:
