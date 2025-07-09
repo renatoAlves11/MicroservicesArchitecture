@@ -1,0 +1,99 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: meubanco
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: senha
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  database_service:
+    build: ./database_service
+    ports:
+      - "8004:5000"
+    depends_on:
+      - db
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DB_HOST=postgres_db
+      - DB_NAME=meubanco
+      - DB_USER=usuario
+      - DB_PASSWORD=senha
+      - DATABASE_SERVICE_URL=http://database_service:5000
+    develop:
+      watch:
+        - action: sync
+          path: ./database_service
+          target: /code
+
+  auth:
+    build: ./auth
+    ports:
+      - "8000:5000"
+    depends_on:
+      - database_service
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DATABASE_SERVICE_URL=http://database_service:5000
+    develop:
+      watch:
+        - action: sync
+          path: ./auth
+          target: /code
+
+  curso_conteudo:
+    build: ./curso_conteudo
+    ports:
+      - "8002:5000"
+    depends_on:
+      - database_service
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DATABASE_SERVICE_URL=http://database_service:5000
+    develop:
+      watch:
+        - action: sync
+          path: ./curso_conteudo
+          target: /code
+
+  pagamento:
+    build: ./pagamento
+    ports:
+      - "8003:5000"
+    depends_on:
+      - database_service
+    environment:
+      - SECRET_KEY=minha-chave-supersegura
+      - DATABASE_SERVICE_URL=http://database_service:5000
+    develop:
+      watch:
+        - action: sync
+          path: ./pagamento
+          target: /code
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8010:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - AUTH_URL=http://auth:5000
+      - DATABASE_SERVICE_URL=http://database_service:5000
+    depends_on:
+      - auth
+      - database_service
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /code
+
+volumes:
+  pgdata:
