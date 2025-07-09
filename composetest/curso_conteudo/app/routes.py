@@ -4,21 +4,10 @@ from .database import db
 
 curso_bp = Blueprint('curso', __name__, template_folder='../../frontend/templates')
 
-@curso_bp.route('/cursos/web', methods=['GET'])
-def exibir_cursos():
-    cursos = Curso.query.all()
-    return jsonify([
-        {
-            'id': curso.id,
-            'titulo': curso.titulo,
-            'descricao': curso.descricao,
-            'preco': curso.preco
-        } for curso in cursos
-    ])
+#Cursos
 
-# Cursos
 @curso_bp.route('/cursos', methods=['GET'])
-def listar_cursos():
+def exibir_cursos():  #Exibe informações do curso sem seus conteúdos
     cursos = Curso.query.all()
     return jsonify([
         {
@@ -30,7 +19,7 @@ def listar_cursos():
     ])
 
 @curso_bp.route('/cursos', methods=['POST'])
-def criar_curso_api():
+def criar_curso():
     data = request.get_json()
     
     titulo = data.get('titulo')
@@ -79,62 +68,29 @@ def adicionar_conteudo():
     return jsonify({'mensagem': 'Conteúdo adicionado'}), 201
 
 @curso_bp.route('/cursos/<int:curso_id>/conteudos', methods=['GET'])
-def listar_conteudos(curso_id):
+def listar_conteudos(curso_id):  #Lista conteúdos de um curso
     conteudos = Conteudo.query.filter_by(curso_id=curso_id).all()
     return jsonify([{'id': c.id, 'titulo': c.titulo, 'texto': c.texto} for c in conteudos])
 
-@curso_bp.route('/cursos/<int:id>/editar', methods=['GET', 'POST'])
-def editar_curso(id):
-    curso = Curso.query.get_or_404(id)
+@curso_bp.route('/conteudos', methods=['POST'])
+def adicionar_conteudo():
+    data = request.get_json()
+    conteudo = Conteudo(
+        curso_id=data['curso_id'],
+        ordem=data['ordem'],
+        titulo=data['titulo'],
+        texto=data['texto']
+    )
 
-    if request.method == 'POST':
-        curso.titulo = request.form['titulo']
-        curso.descricao = request.form['descricao']
-        curso.preco = float(request.form['preco'])  # garantir que seja float
-        db.session.commit()
-        return render_template('cursos.html', cursos=db.Curso.query.all())
+    if Conteudo.query.filter_by(curso_id=conteudo.curso_id, ordem=conteudo.ordem).first():
+        return jsonify({'erro': f'Ordem {conteudo.ordem} já existe'}), 400
 
-    return render_template('editar_curso.html', curso=curso)
-
-@curso_bp.route('/cursos/novo', methods=['GET', 'POST'])
-def criar_curso():
-    if request.method == 'POST':
-        titulo = request.form['titulo']
-        descricao = request.form['descricao']
-        preco = float(request.form['preco'])
-
-        novo_curso = Curso(titulo=titulo, descricao=descricao, preco=preco)
-        db.session.add(novo_curso)
-        db.session.commit()
-
-        # Redireciona com mensagem via query param
-        return redirect(url_for('curso.listar_cursos_web', sucesso='true'))
-
-    return render_template('criar_curso.html')
-
-@curso_bp.route('/cursos/<int:id>/conteudos/novo', methods=['GET', 'POST'])
-def criar_conteudo(id):
-    curso = Curso.query.get_or_404(id)
-    erro = None
-
-    if request.method == 'POST':
-        ordem = int(request.form['ordem'])
-        titulo = request.form['titulo']
-        texto = request.form['texto']
-
-        # verificar ordem repetida
-        if Conteudo.query.filter_by(curso_id=id, ordem=ordem).first():
-            erro = f"Já existe um conteúdo com ordem {ordem} para este curso."
-        else:
-            novo = Conteudo(curso_id=id, ordem=ordem, titulo=titulo, texto=texto)
-            db.session.add(novo)
-            db.session.commit()
-            return redirect(url_for('curso.ver_curso', id=id, sucesso='true'))
-
-    return render_template('criar_conteudo.html', curso=curso, erro=erro)
+    db.session.add(conteudo)
+    db.session.commit()
+    return jsonify({'mensagem': 'Conteúdo adicionado'}), 201
 
 @curso_bp.route('/cursos/<int:id>', methods=['GET'])
-def ver_curso_api(id):
+def ver_curso_api(id):  #Permite ver cursos e seus respectivos conteúdos
     curso = Curso.query.get_or_404(id)
     conteudos = Conteudo.query.filter_by(curso_id=id).order_by(Conteudo.ordem).all()
 
@@ -157,7 +113,7 @@ def deletar_conteudo(curso_id, conteudo_id):
     return redirect(url_for('curso.ver_curso', id=curso_id))
 
 @curso_bp.route('/conteudos/<int:id>', methods=['PUT'])
-def editar_conteudo_api(id):
+def editar_conteudo(id):
     conteudo = Conteudo.query.get_or_404(id)
     data = request.get_json()
 
