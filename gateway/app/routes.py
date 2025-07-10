@@ -122,35 +122,55 @@ def deletar_conteudo(curso_id, conteudo_id):
 @app_routes.route('/matricula', methods=['POST'])
 @role_required('estudante')
 def gateway_criar_matricula():
+    print("eu existo")
     response = requests.post('http://curso_conteudo:5000/matricula', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
-@app_routes.route('/matriculas/usuario/<id_usuario>', methods=['GET'])
+@app_routes.route('/matricula/usuario/<id_usuario>', methods=['GET'])
 @role_required('estudante', 'administrador')
 def gateway_listar_matriculas(id_usuario):
-    response = requests.get(f'http://curso_conteudo:5000/matriculas/usuario/{id_usuario}')
+    response = requests.get(f'http://curso_conteudo:5000/matricula/usuario/{id_usuario}')
+    return (response.text, response.status_code, response.headers.items())
+
+@app_routes.route('/matricula/usuario/<id_usuario>/curso/<id_curso>', methods=['DELETE'])
+def remover_matricula(id_usuario, id_curso):
+    response = requests.delete(f'http://curso_conteudo:5000/matricula/usuario/{id_usuario}/curso/{id_curso}')
     return (response.text, response.status_code, response.headers.items())
 
 #Rotas pagamento
 
 @app_routes.route('/pagamento/<id_pagamento>', methods=['GET'])
 def get_pagamento(id_pagamento):
-    response = requests.get('http://curso_conteudo:5000/pagamento/<id_pagamento>')
+    response = requests.get('http://pagamento:5000/pagamento/<id_pagamento>')
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/pagamento', methods=['POST'])
 def criar_pagamento():
-    response = requests.post('http://curso_conteudo:5000/pagamento', json=request.json)
+    response = requests.post('http://pagamento:5000/pagamento', json=request.json)
     return (response.text, response.status_code, response.headers.items())
 
 
 @app_routes.route('/pagamentos', methods=['GET'])
 @role_required('administrador')
 def listar_pagamentos():
-    response = requests.get('http://curso_conteudo:5000/pagamentos')
+    response = requests.get('http://pagamento:5000/pagamentos')
     return (response.text, response.status_code, response.headers.items())
 
 @app_routes.route('/pagamentos/usuario/<id_usuario>', methods=['GET'])
 def listar_pagamentos_usuario(id_usuario):
-    response = requests.get('http://curso_conteudo:5000/pagamentos/usuario/<id_usuario>')
+    response = requests.get('http://pagamento:5000/pagamentos/usuario/<id_usuario>')
+    return (response.text, response.status_code, response.headers.items())
+
+#Transições de estado
+# Finalizar pagamento
+@app_routes.route('/pagamento/<id_pagamento>/finalizar', methods=['PATCH'])
+def finalizar_pagamento(id_pagamento):
+    response = requests.patch('http://pagamento:5000/pagamento/<id_pagamento>/finalizar')
+    return (response.text, response.status_code, response.headers.items())
+
+
+# Cancelar pagamento
+@app_routes.route('/pagamento/<id_pagamento>/cancelar', methods=['PATCH'])
+def cancelar_pagamento(id_pagamento):
+    response = requests.patch('http://pagamento:5000/pagamento/<id_pagamento>/cancelar')
     return (response.text, response.status_code, response.headers.items())

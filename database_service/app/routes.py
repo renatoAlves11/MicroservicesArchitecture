@@ -215,6 +215,36 @@ def deletar_conteudo(id):
     return jsonify({'message': 'Conteúdo deletado com sucesso'})
 
 # Rotas para Pagamentos
+
+#Estados de pagamento
+@db_routes.route('/pagamento/<id_pagamento>/status', methods=['PATCH'])
+def atualizar_status_pagamento(id_pagamento):
+    ESTADOS_VALIDOS = ['pendente', 'pago', 'falhou', 'reembolsado']
+
+    TRANSICOES_VALIDAS = {
+        'pendente': ['pago', 'falhou'],
+        'pago': ['reembolsado'],
+        'falhou': [],
+        'reembolsado': []
+    }
+
+    pagamento = Pagamento.query.filter_by(id=id_pagamento).first()
+    if not pagamento:
+        return jsonify({'error': 'Pagamento não encontrado'}), 404
+
+    estado_atual = pagamento.status
+    novo_status = request.get_json().get('status')  # Espera { "status": "pago" }, por exemplo
+
+    if novo_status not in ESTADOS_VALIDOS:
+        return jsonify({'error': f'Status inválido: {novo_status}'}), 400
+
+    if novo_status not in TRANSICOES_VALIDAS.get(estado_atual, []):
+        return jsonify({'error': f'Transição inválida de {estado_atual} para {novo_status}'}), 400
+
+    pagamento.status = novo_status
+    db.session.commit()
+    return jsonify({'mensagem': f'Status atualizado para {novo_status}'}), 200
+
 @db_routes.route('/pagamentos', methods=['GET'])
 def listar_pagamentos():
     pagamentos = Pagamento.query.all()
@@ -275,7 +305,7 @@ def criar_matricula():
     # Verificar se já existe
     existente = Matricula.query.filter_by(id_usuario=data['id_usuario'], id_curso=data['id_curso']).first()
     if existente:
-        return jsonify({'error': 'Usuário já está matriculado nesse curso'}), 409
+        return jsonify({'error': 'Usuario já está matriculado nesse curso'}), 409
 
     nova_matricula = Matricula(
         id_usuario=data['id_usuario'],
@@ -286,7 +316,15 @@ def criar_matricula():
     db.session.commit()
     return jsonify(nova_matricula.as_dict()), 201
 
-@db_routes.route('/matriculas/usuario/<id_usuario>', methods=['GET'])
+@db_routes.route('/matricula/usuario/curso/<id_usuario>/<id_curso>', methods=['GET'])
+def verificar_matricula_usuario_curso(id_usuario, id_curso):
+    matricula = Matricula.query.filter_by(id_usuario=id_usuario, id_curso=id_curso).first()
+    if matricula:
+        return jsonify(matricula.as_dict()), 200
+    else:
+        return jsonify({'message': 'Usuário não matriculado'}), 404
+
+@db_routes.route('/matricula/usuario/<id_usuario>', methods=['GET'])
 def listar_matriculas_usuario(id_usuario):
     matriculas = Matricula.query.filter_by(id_usuario=id_usuario).all()
     cursos_matriculados = []
@@ -302,7 +340,7 @@ def listar_matriculas_usuario(id_usuario):
             })
     return jsonify(cursos_matriculados), 200
 
-@db_routes.route('/matriculas/usuario/curso/<id_curso>', methods=['GET'])
+@db_routes.route('/matricula/usuario/curso/<id_curso>', methods=['GET'])
 def listar_usuarios_matriculados_no_curso(id_curso):
     matriculas = Matricula.query.filter_by(id_curso=id_curso).all()
 
@@ -314,6 +352,16 @@ def listar_usuarios_matriculados_no_curso(id_curso):
         })
 
     return jsonify(usuarios_matriculados), 200
+
+@db_routes.route('/matricula/usuario/<id_usuario>/curso/<id_curso>', methods=['DELETE'])
+def deletar_matricula_usuario_curso(id_usuario, id_curso):
+    matricula = Matricula.query.filter_by(id_usuario=id_usuario, id_curso=id_curso).first()
+    if not matricula:
+        return jsonify({'error': 'Matrícula não encontrada'}), 404
+
+    db.session.delete(matricula)
+    db.session.commit()
+    return jsonify({'mensagem': 'Matrícula removida com sucesso'}), 200
 
 # Rota de health check
 @db_routes.route('/health', methods=['GET'])

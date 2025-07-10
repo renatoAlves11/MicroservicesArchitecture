@@ -119,33 +119,53 @@ def deletar_conteudo(curso_id, conteudo_id):
 def matricular_usuario():
     data = request.json
     try:
-        # Validação básica
         if not data.get('id_usuario') or not data.get('id_curso'):
             return jsonify({'error': 'id_usuario e id_curso são obrigatórios'}), 400
 
-        # (Opcional) Verificar se o curso existe
-        curso_response = requests.get(f"http://cursos:5000/cursos/{data['id_curso']}")
-        if curso_response.status_code != 200:
+        # Verificar se o curso existe
+        curso_resp = requests.get(f"{get_database_service_url()}/cursos/{data['id_curso']}")
+        if curso_resp.status_code != 200:
             return jsonify({'error': 'Curso não encontrado'}), 404
+        curso = curso_resp.json()
 
-        data['data_matricula'] = datetime.utcnow().isoformat()
+        # Criar matrícula no banco
+        matricula_resp = requests.post(f"{get_database_service_url()}/matricula", json=data)
+        if matricula_resp.status_code != 201:
+            return matricula_resp.text, matricula_resp.status_code
 
-        # Repassar a matrícula ao serviço de banco
-        response = requests.post(f"{get_database_service_url()}/matriculas", json=data)
+        # Criar pagamento automático
+        pagamento_data = {
+            "id_usuario": data['id_usuario'],
+            "id_curso": data['id_curso'],
+            "valor": curso["preco"]
+        }
 
-        check_response = requests.get(f"{get_database_service_url()}/matriculas/usuario/curso/{data['id_curso']}")
-        if check_response.status_code == 200:
-            return jsonify({'error': 'Usuário já matriculado neste curso'}), 409
+        pagamento_resp = requests.post(f"{get_database_service_url()}/pagamentos", json=pagamento_data)
+        if pagamento_resp.status_code != 201:
+            return jsonify({"error": "Erro ao criar pagamento"}), 500
 
-        return (response.text, response.status_code, response.headers.items())
+        return jsonify({
+            "mensagem": "Matrícula realizada com sucesso",
+            "matricula": matricula_resp.json(),
+            "pagamento": pagamento_resp.json()
+        }), 201
 
     except requests.RequestException:
-        return jsonify({'error': 'Erro ao se comunicar com o serviço de banco'}), 500
+        return jsonify({'error': 'Erro ao se comunicar com os serviços'}), 500
     
-@matricula_bp.route('/matriculas/usuario/<int:id_usuario>', methods=['GET'])
+@matricula_bp.route('/matricula/usuario/<id_usuario>', methods=['GET'])
 def listar_matriculas_usuario(id_usuario):
     try:
-        response = requests.get(f"{get_database_service_url()}/matriculas/usuario/{id_usuario}")
+        response = requests.get(f"{get_database_service_url()}/matricula/usuario/{id_usuario}")
         return (response.text, response.status_code, response.headers.items())
     except requests.RequestException:
         return jsonify({'error': 'Erro ao consultar matrículas'}), 500
+    
+@matricula_bp.route('/matricula/usuario/<id_usuario>/curso/<id_curso>', methods=['DELETE'])
+def remover_matricula(id_usuario, id_curso):
+    try:
+        # Repassar requisição de remoção para o serviço de banco
+        response = requests.delete(f"{get_database_service_url()}/matricula/usuario/{id_usuario}/curso/{id_curso}")
+        return (response.text, response.status_code, response.headers.items())
+    except requests.RequestException:
+        return jsonify({'error': 'Erro ao se comunicar com o serviço de banco'}), 500
