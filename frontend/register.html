@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Dashboard</a> |
+    <a href="login.html">Login</a> |
+    <a href="register.html">Registrar</a> |
+    <a href="cursos.html">Cursos</a> |
+    <a href="pagamentos.html">Pagamentos</a>
+  </nav>
+  <h1>Registrar</h1>
+  <form id="registerForm">
+    <label>Nome: <input type="text" id="name" required></label><br>
+    <label>Email: <input type="email" id="email" required></label><br>
+    <label>Senha: <input type="password" id="password" required></label><br>
+    <button type="submit">Registrar</button>
+    <div id="registerError" style="color:red;"></div>
+  </form>
+  <script src="js/register.js"></script>
+</body>
+</html> 

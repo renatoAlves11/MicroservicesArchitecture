@@ -57,6 +57,12 @@ services:
       - SECRET_KEY=minha-chave-supersegura
       - DATABASE_SERVICE_URL=http://database_service:5000
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "8010:80"
+    depends_on:
+      - database_service
 
 
 volumes:
